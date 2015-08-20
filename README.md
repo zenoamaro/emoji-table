@@ -1,7 +1,11 @@
 emoji-table
 ===========
 
-Annotated list of emoji built from the online unicode charts.
+Annotated emoji table built from the online unicode charts.
+
+The charts are sourced from [unicode.org](http://www.unicode.org/emoji/charts/full-emoji-list.html) and so should always be up-to-date.
+
+[See the JSON catalog](dist/emoji.json)
 
   1. [Usage](#usage)
   2. [Building](#building)
@@ -11,18 +15,57 @@ Annotated list of emoji built from the online unicode charts.
 
 Usage
 -----
-...
+Install the emoji package:
+
+	npm install emoji-table
+
+You can then require it in your code:
+
+~~~js
+var emoji = require('emoji-table');
+
+console.log(
+    emoji.filter(function(e) {
+        return e.tags.indexOf('animal') !== -1;
+    }).map(function(e) {
+        return e.char;
+    })
+);
+~~~
+
+Each emoji in the list has this structure:
+
+~~~json
+{
+    "code": "U+1F600",
+    "char": "😀",
+    "name": "grinning face",
+    "version": 6.1,
+    "tags": [
+        "face",
+        "grin",
+        "person"
+    ]
+}
+~~~
+
+You can also use the catalog directly in [`dist/emoji.json`](dist/emoji.json).
 
 
 Building
 --------
-...
+To rebuild the catalog from the online sources:
+
+    git clone https://github.com/zenoamaro/node-emoji.git && cd node-emoji
+    make build
+
+You will find an updated catalog file in [`dist/emoji.json`](dist/emoji.json).
 
 
 Changelog
 ---------
 #### v0.1.0
-- Initial version
+- Initial version with unicode 8.0 set.
 
 
 License
