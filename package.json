@@ -13,6 +13,7 @@
     "type": "git",
     "url": "https://github.com/zenoamaro/emoji-table.git"
   },
+  "main": "dist/emoji.json",
   "scripts": {
     "build": "make build",
     "clean": "make clean"
@@ -23,6 +24,12 @@
     "unicode",
     "charts"
   ],
+  "dependencies": {
+    "request": "^2.61.0"
+  },
+  "devDependencies": {
+    "cheerio": "^0.19.0"
+  },
   "files": [
     "dist",
     "LICENSE",
