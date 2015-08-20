@@ -1,0 +1,31 @@
+{
+  "name": "emoji-table",
+  "version": "0.1.0",
+  "description": "Emoji table built from unicode data",
+  "author": "zenoamaro <zenoamaro@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/zenoamaro/emoji-table",
+  "bugs": {
+    "url": "https://github.com/zenoamaro/emoji-table/issues",
+    "email": "zenoamaro@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zenoamaro/emoji-table.git"
+  },
+  "scripts": {
+    "build": "make build",
+    "clean": "make clean"
+  },
+  "keywords": [
+    "emoji",
+    "annotated",
+    "unicode",
+    "charts"
+  ],
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ]
+}
