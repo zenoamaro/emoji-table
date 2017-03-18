@@ -26,10 +26,10 @@ var emoji = require('emoji-table');
 
 console.log(
     emoji.filter(function(e) {
-        return e.tags.indexOf('animal') !== -1;
+        return e.keywords.indexOf('animal') !== -1;
     }).map(function(e) {
-        return e.char;
-    })
+        return e.character;
+    });
 );
 ~~~
 
@@ -37,15 +37,16 @@ Each emoji in the list has this structure:
 
 ~~~json
 {
-    "code": "U+1F600",
-    "char": "😀",
     "name": "grinning face",
-    "version": 6.1,
-    "tags": [
+    "codePoints": [
+        128512
+    ],
+    "character": "😀",
+    "keywords": [
         "face",
-        "grin",
-        "person"
-    ]
+        "grin"
+    ],
+    "date": 2012
 }
 ~~~
 
@@ -64,6 +65,9 @@ You will find an updated catalog file in [`dist/emoji.json`](dist/emoji.json).
 
 Changelog
 ---------
+#### v0.2.0
+- Update to Emoji version 4.
+
 #### v0.1.0
 - Initial version with unicode 8.0 set.
 
@@ -72,7 +76,7 @@ License
 -------
 The MIT License (MIT)
 
-Copyright (c) 2015, zenoamaro <zenoamaro@gmail.com>
+Copyright (c) 2017, zenoamaro <zenoamaro@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

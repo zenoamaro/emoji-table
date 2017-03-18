@@ -5,81 +5,129 @@ var cheerio = require('cheerio');
 var request = require('request');
 
 var url = 'http://www.unicode.org/emoji/charts/full-emoji-list.html';
-var dest = path.join(__dirname, '..', 'dist');
-var catalog = path.join(dest, 'emoji.json');
+var catalogPath = path.join(__dirname, '..', 'dist', 'emoji.json');
 
-var columns = [
-	{ index: 1, name:'code',    transform:parseText    },
-	{ index: 2, name:'char',    transform:parseText    },
-	{ index:12, name:'name',    transform:parseText    },
-	{ index:13, name:'version', transform:parseVersion },
-	{ index:15, name:'tags',    transform:parseTags    },
+var entryTypes = [
+	
+	/* Standard */ {
+		test: function(values) {
+			return values.length === 6;
+		},
+		keys: [
+			{ index: 3, name:'name',       transform:parseAsText       },
+			{ index: 1, name:'codePoints', transform:parseAsCodePoints },
+			{ index: 1, name:'character',  transform:parseAsChar       },
+			{ index: 5, name:'keywords',   transform:parseAsKeywords   },
+			{ index: 4, name:'date',       transform:parseAsNumber     },
+		],
+	},
+
+	/* Proposal */ {
+		test: function(values) {
+			return values.length === 17;
+		},
+		keys: [
+			{ index:14, name:'name',       transform:parseAsText       },
+			{ index: 1, name:'codePoints', transform:parseAsCodePoints },
+			{ index: 1, name:'character',  transform:parseAsChar       },
+			{ index:16, name:'keywords',   transform:parseAsKeywords   },
+			{ index:15, name:'date',       transform:parseAsNumber     },
+		],
+	},
+	
 ];
 
-downloadChart(function(body) {
-	var rows = parseMarkup(body);
-	var emoji = transcribeEmoji(rows);
-	writeCatalog(emoji, function() {
-		console.log(emoji.length + ' entries written to ' + catalog);
+function buildCatalog(done) {
+	downloadChart(function(err, body) {
+		if (err) return done(err);
+		parseMarkup(body, function(err, catalog) {
+			if (err) return done(err);
+			writeCatalog(catalog, done);
+		});
 	});
-});
+}
 
 function downloadChart(done) {
 	console.log('Downloading the emoji chart...');
 	request.get(url, function(err, resp, body) {
-		if (err || resp.statusCode >= 400) handleError(err);
-		done(body);
+		if (err || resp.statusCode >= 400) return done(err);
+		done(null, body);
 	});
-}
-
-function parseMarkup(body) {
-	console.log('Parsing the markup...');
-	var $ = cheerio.load(body);
-	var rows = $('table tr').slice(1);
-	return rows.map(function(i, row) {
-		return $(row).find('td').map(function(i, cell) {
-			return $(cell).text();
-		});
-	}).get();
-}
-
-function transcribeEmoji(rows) {
-	console.log('Transcribing emoji details...');
-	return rows.map(function(cells) {
-		var spec = {};
-		columns.forEach(function(col) {
-			var cell = cells[col.index];
-			spec[col.name] = col.transform(cell);
-		});
-		return spec;
-	});
-}
-
-function parseText(text) {
-	return text;
-}
-
-function parseTags(text) {
-	return text.split(', ');
-}
-
-function parseVersion(text) {
-	var version = text.match(/\d+\.\d+/)[0];
-	return parseFloat(version, 10);
 }
 
 function writeCatalog(data, done) {
 	console.log('Writing JSON catalog...');
 	var json = JSON.stringify(data, null, 4);
-	fs.mkdir(dest, function() {
-		fs.writeFile(catalog, json, function(err) {
-			if (err) handleError(err);
-			done();
-		});
+	fs.writeFile(catalogPath, json, function(err) {
+		if (err) return done(err);
+		console.log(data.length + ' entries written to ' + catalogPath);
+		done();
 	});
+}
+
+function parseMarkup(body, done) {
+	console.log('Parsing the markup...');
+	var $ = cheerio.load(body);
+	var rows = $('table tr').map(function(i, row) {
+		return $(row).find('td').map(function(i, cell) {
+			return $(cell).text();
+		});
+	}).get();
+	console.log('Transcribing emoji details...');
+	var entries = rows.map(parseEntry)
+		.filter(function(e){ return e });
+	done(null, entries);
+}
+
+function parseEntry(values) {
+	if (values.length === 0) return;
+	var entryType = entryTypes.find(function(type){
+		return type.test(values);
+	});
+	if (!entryType) throw new Error('Unrecognized row type');
+	return transcribeEmoji(entryType, values);
+}
+
+function transcribeEmoji(entryType, values) {
+	var entry = {};
+	entryType.keys.forEach(function(key) {
+		var value = values[key.index];
+		entry[key.name] = key.transform(value);
+	});
+	return entry;
+}
+
+function parseAsChar(text) {
+	var codePoints = parseAsCodePoints(text);
+	return codePoints.map(function(c){ return String.fromCodePoint(c) })
+		.join('');
+}
+
+function parseAsCodePoints(text) {
+	return text.split(' ')
+		.map(function(s){ return s.trim(); })
+		.map(function(s){ return s.replace('U+', ''); })
+		.map(function(s){ return parseInt(s, 16); });
+}
+
+function parseAsNumber(text) {
+	return parseInt(text, 10);
+}
+
+function parseAsKeywords(text) {
+	return text.split('|')
+		.map(function(s){ return s.trim(); })
+}
+
+function parseAsText(text) {
+	return text;
 }
 
 function handleError(err) {
 	console.error(err);
 	os.exit(1);
 }
+
+buildCatalog(function(err) {
+	if (err) return handleError(err);
+});

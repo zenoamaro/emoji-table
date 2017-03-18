@@ -1,6 +1,6 @@
 {
   "name": "emoji-table",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Emoji table built from unicode data",
   "author": "zenoamaro <zenoamaro@gmail.com>",
   "license": "MIT",
