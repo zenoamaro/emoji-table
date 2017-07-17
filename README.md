@@ -39,7 +39,7 @@ Each emoji in the list has this structure:
 {
     "name": "grinning face",
 	"number": 1,
-	"code": [
+	"codes": [
 		"U+1F600"
 	],
 	"codePoints": [

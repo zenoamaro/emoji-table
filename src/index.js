@@ -16,7 +16,7 @@ var entryTypes = [
 		keys: [
 			{ index: 3, name:'name',       transform:parseAsText       },
 			{ index: 0, name:'number',     transform:parseAsNumber     },
-			{ index: 1, name:'code',       transform:parseAsTexts      },
+			{ index: 1, name:'codes',      transform:parseAsTexts      },
 			{ index: 1, name:'codePoints', transform:parseAsCodePoints },
 			{ index: 1, name:'character',  transform:parseAsCharacter  },
 			{ index: 4, name:'keywords',   transform:parseAsKeywords   },
