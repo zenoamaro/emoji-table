@@ -4,37 +4,25 @@ var path = require('path');
 var cheerio = require('cheerio');
 var request = require('request');
 
-var url = 'http://www.unicode.org/emoji/charts/full-emoji-list.html';
+var url = 'http://www.unicode.org/emoji/charts/emoji-list.html';
 var catalogPath = path.join(__dirname, '..', 'dist', 'emoji.json');
 
 var entryTypes = [
-	
+
 	/* Standard */ {
 		test: function(values) {
-			return values.length === 6;
+			return values.length === 5;
 		},
 		keys: [
 			{ index: 3, name:'name',       transform:parseAsText       },
+			{ index: 0, name:'number',     transform:parseAsNumber     },
+			{ index: 1, name:'code',       transform:parseAsTexts      },
 			{ index: 1, name:'codePoints', transform:parseAsCodePoints },
-			{ index: 1, name:'character',  transform:parseAsChar       },
-			{ index: 5, name:'keywords',   transform:parseAsKeywords   },
-			{ index: 4, name:'date',       transform:parseAsNumber     },
+			{ index: 1, name:'character',  transform:parseAsCharacter  },
+			{ index: 4, name:'keywords',   transform:parseAsKeywords   },
 		],
 	},
 
-	/* Proposal */ {
-		test: function(values) {
-			return values.length === 17;
-		},
-		keys: [
-			{ index:14, name:'name',       transform:parseAsText       },
-			{ index: 1, name:'codePoints', transform:parseAsCodePoints },
-			{ index: 1, name:'character',  transform:parseAsChar       },
-			{ index:16, name:'keywords',   transform:parseAsKeywords   },
-			{ index:15, name:'date',       transform:parseAsNumber     },
-		],
-	},
-	
 ];
 
 function buildCatalog(done) {
@@ -81,10 +69,10 @@ function parseMarkup(body, done) {
 
 function parseEntry(values) {
 	if (values.length === 0) return;
-	var entryType = entryTypes.find(function(type){
+	var entryType = entryTypes.find(function(type) {
 		return type.test(values);
 	});
-	if (!entryType) throw new Error('Unrecognized row type');
+	if (!entryType) return null;
 	return transcribeEmoji(entryType, values);
 }
 
@@ -97,7 +85,7 @@ function transcribeEmoji(entryType, values) {
 	return entry;
 }
 
-function parseAsChar(text) {
+function parseAsCharacter(text) {
 	var codePoints = parseAsCodePoints(text);
 	return codePoints.map(function(c){ return String.fromCodePoint(c) })
 		.join('');
@@ -121,6 +109,11 @@ function parseAsKeywords(text) {
 
 function parseAsText(text) {
 	return text;
+}
+
+function parseAsTexts(text) {
+	return text.split(' ')
+		.map(function(s){ return s.trim(); })
 }
 
 function handleError(err) {
