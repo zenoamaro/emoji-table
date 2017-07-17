@@ -3,7 +3,7 @@ emoji-table
 
 Annotated emoji table built from the online unicode charts.
 
-The charts are sourced from [unicode.org](http://www.unicode.org/emoji/charts/full-emoji-list.html) and so should always be up-to-date.
+The charts are sourced from [unicode.org](http://www.unicode.org/emoji/charts/emoji-list.html) and so should always be up-to-date.
 
 [See the JSON catalog](dist/emoji.json)
 
@@ -38,15 +38,18 @@ Each emoji in the list has this structure:
 ~~~json
 {
     "name": "grinning face",
-    "codePoints": [
-        128512
-    ],
-    "character": "😀",
-    "keywords": [
-        "face",
-        "grin"
-    ],
-    "date": 2012
+	"number": 1,
+	"code": [
+		"U+1F600"
+	],
+	"codePoints": [
+		128512
+	],
+	"character": "😀",
+	"keywords": [
+		"face",
+		"grin"
+	]
 }
 ~~~
 
@@ -65,6 +68,9 @@ You will find an updated catalog file in [`dist/emoji.json`](dist/emoji.json).
 
 Changelog
 ---------
+#### v0.3.0
+- Update to Emoji version 5.
+
 #### v0.2.0
 - Update to Emoji version 4.
 
@@ -76,7 +82,7 @@ License
 -------
 The MIT License (MIT)
 
-Copyright (c) 2017, zenoamaro <zenoamaro@gmail.com>
+Copyright (c) 2017, zenoamaro <zenoamaro@gmail.com> & Stezii
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
