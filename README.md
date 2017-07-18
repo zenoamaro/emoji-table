@@ -17,7 +17,7 @@ Usage
 -----
 Install the emoji package:
 
-	npm install emoji-table
+    npm install emoji-table
 
 You can then require it in your code:
 
@@ -38,20 +38,20 @@ Each emoji in the list has this structure:
 ~~~json
 {
     "name": "grinning face",
-	"number": 1,
-	"codes": [
-		"U+1F600"
-	],
-	"codePoints": [
-		128512
-	],
-	"character": "😀",
-	"group": "Smileys & People",
-	"subGroup": "face-positive",
-	"keywords": [
-		"face",
-		"grin"
-	]
+    "number": 1,
+    "codes": [
+        "U+1F600"
+    ],
+    "codePoints": [
+        128512
+    ],
+    "character": "😀",
+    "group": "Smileys & People",
+    "subGroup": "face-positive",
+    "keywords": [
+        "face",
+        "grin"
+    ]
 }
 ~~~
 
