@@ -46,6 +46,8 @@ Each emoji in the list has this structure:
 		128512
 	],
 	"character": "😀",
+	"group": "Smileys & People",
+	"subGroup": "face-positive",
 	"keywords": [
 		"face",
 		"grin"

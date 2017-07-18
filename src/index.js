@@ -6,6 +6,7 @@ var request = require('request');
 
 var url = 'http://www.unicode.org/emoji/charts/emoji-list.html';
 var catalogPath = path.join(__dirname, '..', 'dist', 'emoji.json');
+var categories = {};
 
 var entryTypes = [
 
@@ -19,6 +20,8 @@ var entryTypes = [
 			{ index: 1, name:'codes',      transform:parseAsTexts      },
 			{ index: 1, name:'codePoints', transform:parseAsCodePoints },
 			{ index: 1, name:'character',  transform:parseAsCharacter  },
+			{ index: 1, name:'group',      transform:parseAsGroup      },
+			{ index: 1, name:'subGroup',   transform:parseAsSubGroup   },
 			{ index: 4, name:'keywords',   transform:parseAsKeywords   },
 		],
 	},
@@ -56,11 +59,21 @@ function writeCatalog(data, done) {
 function parseMarkup(body, done) {
 	console.log('Parsing the markup...');
 	var $ = cheerio.load(body);
-	var rows = $('table tr').map(function(i, row) {
-		return $(row).find('td').map(function(i, cell) {
-			return $(cell).text();
+	var lastGroup, lastSubGroup = '';
+	var rows = [];
+	$('table tr').each(function(i, row) {
+		var th = $(row).find('th');
+		lastGroup = th.hasClass('bighead')?th.text():lastGroup;
+		lastSubGroup = th.hasClass('mediumhead')?th.text():lastSubGroup;
+		$(row).find('td a img').map(function(j, title) {
+			categories[$(title).attr('title').split(' ').filter(function(word) {
+   				return word.startsWith('U+');
+			}).join(' ')] = {group: lastGroup, subGroup: lastSubGroup};
 		});
-	}).get();
+		rows.push($(row).find('td').map(function(j, cell) {
+			return $(cell).text();
+		}));
+	});
 	console.log('Transcribing emoji details...');
 	var entries = rows.map(parseEntry)
 		.filter(function(e){ return e });
@@ -100,6 +113,14 @@ function parseAsCodePoints(text) {
 
 function parseAsNumber(text) {
 	return parseInt(text, 10);
+}
+
+function parseAsGroup(text) {
+	return categories[text].group;
+}
+
+function parseAsSubGroup(text) {
+	return categories[text].subGroup;
 }
 
 function parseAsKeywords(text) {
