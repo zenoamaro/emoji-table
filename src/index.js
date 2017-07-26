@@ -3,8 +3,10 @@ var fs = require('fs');
 var path = require('path');
 var cheerio = require('cheerio');
 var request = require('request');
+var _ = require('underscore');
 
-var url = 'http://www.unicode.org/emoji/charts/emoji-list.html';
+var urlEmoji = 'http://www.unicode.org/emoji/charts/emoji-list.html';
+var urlSynonyms = 'https://raw.githubusercontent.com/wooorm/emoticon/02438db383babedcf0a81f421198d846afae30c8/index.json';
 var catalogPath = path.join(__dirname, '..', 'dist', 'emoji.json');
 var categories = {};
 
@@ -19,7 +21,7 @@ var entryTypes = [
 			{ index: 0, name:'number',     transform:parseAsNumber     },
 			{ index: 1, name:'codes',      transform:parseAsTexts      },
 			{ index: 1, name:'codePoints', transform:parseAsCodePoints },
-			{ index: 1, name:'character',  transform:parseAsCharacter  },
+			{ index: 1, name:'emoji',      transform:parseAsEmoji      },
 			{ index: 1, name:'group',      transform:parseAsGroup      },
 			{ index: 1, name:'subGroup',   transform:parseAsSubGroup   },
 			{ index: 4, name:'keywords',   transform:parseAsKeywords   },
@@ -29,21 +31,35 @@ var entryTypes = [
 ];
 
 function buildCatalog(done) {
-	downloadChart(function(err, body) {
+	download(urlEmoji, function(err, bodyEmoji) {
 		if (err) return done(err);
-		parseMarkup(body, function(err, catalog) {
+		parseMarkup(bodyEmoji, function(err, catalogEmoji) {
 			if (err) return done(err);
-			writeCatalog(catalog, done);
+			download(urlSynonyms, function(err, bodySynonyms) {
+				if (err) return done(err);
+				parseJson(bodySynonyms, function(err, catalogSynonyms) {
+					if (err) return done(err);
+					writeCatalog(joinCatalogs(catalogEmoji, catalogSynonyms), done);
+				});	
+			});	
 		});
 	});
 }
 
-function downloadChart(done) {
-	console.log('Downloading the emoji chart...');
+function download(url, done) {
+	console.log('Downloading... ' + url);
 	request.get(url, function(err, resp, body) {
 		if (err || resp.statusCode >= 400) return done(err);
 		done(null, body);
 	});
+}
+
+function joinCatalogs(catalogEmoji, catalogSynonyms, done) {
+	console.log('Joining catalogs...');
+	var result = _.map(catalogEmoji, function(item){
+		return _.extend(item, _.findWhere(catalogSynonyms, { emoji: item.emoji }));
+	});
+	return result;
 }
 
 function writeCatalog(data, done) {
@@ -54,6 +70,11 @@ function writeCatalog(data, done) {
 		console.log(data.length + ' entries written to ' + catalogPath);
 		done();
 	});
+}
+
+function parseJson(body, done) {
+	console.log('Parsing JSON string...');
+	done(null, JSON.parse(body));
 }
 
 function parseMarkup(body, done) {
@@ -98,7 +119,7 @@ function transcribeEmoji(entryType, values) {
 	return entry;
 }
 
-function parseAsCharacter(text) {
+function parseAsEmoji(text) {
 	var codePoints = parseAsCodePoints(text);
 	return codePoints.map(function(c){ return String.fromCodePoint(c) })
 		.join('');

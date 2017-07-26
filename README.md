@@ -37,20 +37,38 @@ Each emoji in the list has this structure:
 
 ~~~json
 {
-    "name": "grinning face",
-    "number": 1,
+    "name": "smiley",
+    "number": 5,
     "codes": [
-        "U+1F600"
+        "U+1F603"
     ],
     "codePoints": [
-        128512
+        128515
     ],
-    "character": "😀",
+    "emoji": "😀",
     "group": "Smileys & People",
     "subGroup": "face-positive",
     "keywords": [
         "face",
-        "grin"
+        "mouth",
+        "open",
+        "smile"
+    ],
+    "tags": [
+        "happy",
+        "joy",
+        "haha"
+    ],
+    "description": "smiling face with open mouth",
+    "emoticons": [
+        ":)",
+        ":]",
+        ":-)",
+        ":-]",
+        "=)",
+        "=]",
+        "=-)",
+        "=-]"
     ]
 }
 ~~~
@@ -62,7 +80,7 @@ Building
 --------
 To rebuild the catalog from the online sources:
 
-    git clone https://github.com/zenoamaro/node-emoji.git && cd node-emoji
+    git clone https://github.com/Stezii/emoji-table.git && cd node-emoji
     make build
 
 You will find an updated catalog file in [`dist/emoji.json`](dist/emoji.json).
@@ -70,6 +88,9 @@ You will find an updated catalog file in [`dist/emoji.json`](dist/emoji.json).
 
 Changelog
 ---------
+#### v0.4.0
+- Added ASCII emoticon synonyms.
+
 #### v0.3.0
 - Update to Emoji version 5.
 
