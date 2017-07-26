@@ -3,56 +3,63 @@ var fs = require('fs');
 var path = require('path');
 var cheerio = require('cheerio');
 var request = require('request');
+var _ = require('underscore');
 
-var url = 'http://www.unicode.org/emoji/charts/full-emoji-list.html';
+var urlEmoji = 'http://www.unicode.org/emoji/charts/emoji-list.html';
+var urlSynonyms = 'https://raw.githubusercontent.com/wooorm/emoticon/02438db383babedcf0a81f421198d846afae30c8/index.json';
 var catalogPath = path.join(__dirname, '..', 'dist', 'emoji.json');
+var categories = {};
 
 var entryTypes = [
-	
+
 	/* Standard */ {
 		test: function(values) {
-			return values.length === 6;
+			return values.length === 5;
 		},
 		keys: [
 			{ index: 3, name:'name',       transform:parseAsText       },
+			{ index: 0, name:'number',     transform:parseAsNumber     },
+			{ index: 1, name:'codes',      transform:parseAsTexts      },
 			{ index: 1, name:'codePoints', transform:parseAsCodePoints },
-			{ index: 1, name:'character',  transform:parseAsChar       },
-			{ index: 5, name:'keywords',   transform:parseAsKeywords   },
-			{ index: 4, name:'date',       transform:parseAsNumber     },
+			{ index: 1, name:'emoji',      transform:parseAsEmoji      },
+			{ index: 1, name:'group',      transform:parseAsGroup      },
+			{ index: 1, name:'subGroup',   transform:parseAsSubGroup   },
+			{ index: 4, name:'keywords',   transform:parseAsKeywords   },
 		],
 	},
 
-	/* Proposal */ {
-		test: function(values) {
-			return values.length === 17;
-		},
-		keys: [
-			{ index:14, name:'name',       transform:parseAsText       },
-			{ index: 1, name:'codePoints', transform:parseAsCodePoints },
-			{ index: 1, name:'character',  transform:parseAsChar       },
-			{ index:16, name:'keywords',   transform:parseAsKeywords   },
-			{ index:15, name:'date',       transform:parseAsNumber     },
-		],
-	},
-	
 ];
 
 function buildCatalog(done) {
-	downloadChart(function(err, body) {
+	download(urlEmoji, function(err, bodyEmoji) {
 		if (err) return done(err);
-		parseMarkup(body, function(err, catalog) {
+		parseMarkup(bodyEmoji, function(err, catalogEmoji) {
 			if (err) return done(err);
-			writeCatalog(catalog, done);
+			download(urlSynonyms, function(err, bodySynonyms) {
+				if (err) return done(err);
+				parseJson(bodySynonyms, function(err, catalogSynonyms) {
+					if (err) return done(err);
+					writeCatalog(joinCatalogs(catalogEmoji, catalogSynonyms), done);
+				});	
+			});	
 		});
 	});
 }
 
-function downloadChart(done) {
-	console.log('Downloading the emoji chart...');
+function download(url, done) {
+	console.log('Downloading... ' + url);
 	request.get(url, function(err, resp, body) {
 		if (err || resp.statusCode >= 400) return done(err);
 		done(null, body);
 	});
+}
+
+function joinCatalogs(catalogEmoji, catalogSynonyms, done) {
+	console.log('Joining catalogs...');
+	var result = _.map(catalogEmoji, function(item){
+		return _.extend(item, _.findWhere(catalogSynonyms, { emoji: item.emoji }));
+	});
+	return result;
 }
 
 function writeCatalog(data, done) {
@@ -65,14 +72,29 @@ function writeCatalog(data, done) {
 	});
 }
 
+function parseJson(body, done) {
+	console.log('Parsing JSON string...');
+	done(null, JSON.parse(body));
+}
+
 function parseMarkup(body, done) {
 	console.log('Parsing the markup...');
 	var $ = cheerio.load(body);
-	var rows = $('table tr').map(function(i, row) {
-		return $(row).find('td').map(function(i, cell) {
-			return $(cell).text();
+	var lastGroup, lastSubGroup = '';
+	var rows = [];
+	$('table tr').each(function(i, row) {
+		var th = $(row).find('th');
+		lastGroup = th.hasClass('bighead')?th.text():lastGroup;
+		lastSubGroup = th.hasClass('mediumhead')?th.text():lastSubGroup;
+		$(row).find('td a img').map(function(j, title) {
+			categories[$(title).attr('title').split(' ').filter(function(word) {
+   				return word.startsWith('U+');
+			}).join(' ')] = {group: lastGroup, subGroup: lastSubGroup};
 		});
-	}).get();
+		rows.push($(row).find('td').map(function(j, cell) {
+			return $(cell).text();
+		}));
+	});
 	console.log('Transcribing emoji details...');
 	var entries = rows.map(parseEntry)
 		.filter(function(e){ return e });
@@ -81,10 +103,10 @@ function parseMarkup(body, done) {
 
 function parseEntry(values) {
 	if (values.length === 0) return;
-	var entryType = entryTypes.find(function(type){
+	var entryType = entryTypes.find(function(type) {
 		return type.test(values);
 	});
-	if (!entryType) throw new Error('Unrecognized row type');
+	if (!entryType) return null;
 	return transcribeEmoji(entryType, values);
 }
 
@@ -97,7 +119,7 @@ function transcribeEmoji(entryType, values) {
 	return entry;
 }
 
-function parseAsChar(text) {
+function parseAsEmoji(text) {
 	var codePoints = parseAsCodePoints(text);
 	return codePoints.map(function(c){ return String.fromCodePoint(c) })
 		.join('');
@@ -114,6 +136,14 @@ function parseAsNumber(text) {
 	return parseInt(text, 10);
 }
 
+function parseAsGroup(text) {
+	return categories[text].group;
+}
+
+function parseAsSubGroup(text) {
+	return categories[text].subGroup;
+}
+
 function parseAsKeywords(text) {
 	return text.split('|')
 		.map(function(s){ return s.trim(); })
@@ -121,6 +151,11 @@ function parseAsKeywords(text) {
 
 function parseAsText(text) {
 	return text;
+}
+
+function parseAsTexts(text) {
+	return text.split(' ')
+		.map(function(s){ return s.trim(); })
 }
 
 function handleError(err) {

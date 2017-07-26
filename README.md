@@ -3,7 +3,7 @@ emoji-table
 
 Annotated emoji table built from the online unicode charts.
 
-The charts are sourced from [unicode.org](http://www.unicode.org/emoji/charts/full-emoji-list.html) and so should always be up-to-date.
+The charts are sourced from [unicode.org](http://www.unicode.org/emoji/charts/emoji-list.html) and so should always be up-to-date.
 
 [See the JSON catalog](dist/emoji.json)
 
@@ -17,7 +17,7 @@ Usage
 -----
 Install the emoji package:
 
-	npm install emoji-table
+    npm install emoji-table
 
 You can then require it in your code:
 
@@ -37,16 +37,39 @@ Each emoji in the list has this structure:
 
 ~~~json
 {
-    "name": "grinning face",
-    "codePoints": [
-        128512
+    "name": "smiley",
+    "number": 5,
+    "codes": [
+        "U+1F603"
     ],
-    "character": "😀",
+    "codePoints": [
+        128515
+    ],
+    "emoji": "😀",
+    "group": "Smileys & People",
+    "subGroup": "face-positive",
     "keywords": [
         "face",
-        "grin"
+        "mouth",
+        "open",
+        "smile"
     ],
-    "date": 2012
+    "tags": [
+        "happy",
+        "joy",
+        "haha"
+    ],
+    "description": "smiling face with open mouth",
+    "emoticons": [
+        ":)",
+        ":]",
+        ":-)",
+        ":-]",
+        "=)",
+        "=]",
+        "=-)",
+        "=-]"
+    ]
 }
 ~~~
 
@@ -57,7 +80,7 @@ Building
 --------
 To rebuild the catalog from the online sources:
 
-    git clone https://github.com/zenoamaro/node-emoji.git && cd node-emoji
+    git clone https://github.com/Stezii/emoji-table.git && cd node-emoji
     make build
 
 You will find an updated catalog file in [`dist/emoji.json`](dist/emoji.json).
@@ -65,6 +88,12 @@ You will find an updated catalog file in [`dist/emoji.json`](dist/emoji.json).
 
 Changelog
 ---------
+#### v0.4.0
+- Added ASCII emoticon synonyms.
+
+#### v0.3.0
+- Update to Emoji version 5.
+
 #### v0.2.0
 - Update to Emoji version 4.
 
